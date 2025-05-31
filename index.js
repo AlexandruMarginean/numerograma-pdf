@@ -42,14 +42,15 @@ app.post("/genereaza-pdf", async (req, res) => {
     const zip = new PizZip(content);
     const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
 
-    doc.setData({
-      prenume, nume, dataNasterii,
-      C1, C2, C3, C4, C5, C6, C7, C8, C9,
-      MI, ME, DESTIN, TEXT_DESTIN,
-      TEXT_KARMA_PERSONALA, NUME_KARMA_PERSONALA,
-      TEXT_KARMA_NEAM, TEXT_SOLUTIE_KARMA_NEAM,
-      NUME_EGREGOR, TEXT_EGREGOR
-    });
+    doc.render({
+  prenume, nume, dataNasterii,
+  C1, C2, C3, C4, C5, C6, C7, C8, C9,
+  MI, ME, DESTIN, TEXT_DESTIN,
+  TEXT_KARMA_PERSONALA, NUME_KARMA_PERSONALA,
+  TEXT_KARMA_NEAM, TEXT_SOLUTIE_KARMA_NEAM,
+  NUME_EGREGOR, TEXT_EGREGOR
+});
+
 
     // DEBUG: prinde erori de template rendering
     try {
