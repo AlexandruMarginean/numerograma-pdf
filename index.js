@@ -34,7 +34,14 @@ app.post("/genereaza-pdf", async (req, res) => {
     doc.render();
     const buf = doc.getZip().generate({ type: "nodebuffer" });
 
-    const docxPath = `output/${nume}_${prenume}.docx`;
+    const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9_-]/g, "");
+
+const prenumeSafe = normalize(prenume);
+const numeSafe = normalize(nume);
+
+const docxPath = `output/${numeSafe}_${prenumeSafe}.docx`;
+const pdfPath = `output/${numeSafe}_${prenumeSafe}.pdf`;
+
     fs.writeFileSync(docxPath, buf);
 
     const pdfPath = `output/${nume}_${prenume}.pdf`;
@@ -55,12 +62,13 @@ app.post("/genereaza-pdf", async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: "drumuleroului@gmail.com",
-      to: email,
-      subject: `Numerograma ta, ${prenume}`,
-      text: "Găsești atașat documentul cu numerograma completă.",
-      attachments: [{ filename: `${prenume}_${nume}.pdf`, path: pdfPath }]
-    });
+  from: "drumuleroului@gmail.com",
+  to: email,
+  subject: `Numerograma ta, ${prenume}`,
+  text: "Găsești atașat documentul cu numerograma completă.",
+  attachments: [{ filename: `${prenumeSafe}_${numeSafe}.pdf`, path: pdfPath }]
+});
+
 
     res.send({ success: true, path: pdfPath });
   } catch (err) {
