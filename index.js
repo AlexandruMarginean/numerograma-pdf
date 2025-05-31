@@ -36,6 +36,8 @@ app.post("/genereaza-pdf", async (req, res) => {
     const numeSafe = normalize(nume);
 
     const templatePath = path.join("templates", "Structura Numerograma editabila.docx");
+    console.log("Path către șablon:", templatePath); // DEBUG
+
     const content = fs.readFileSync(templatePath, "binary");
     const zip = new PizZip(content);
     const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
@@ -49,7 +51,20 @@ app.post("/genereaza-pdf", async (req, res) => {
       NUME_EGREGOR, TEXT_EGREGOR
     });
 
-    doc.render();
+    // DEBUG: prinde erori de template rendering
+    try {
+      doc.render();
+    } catch (error) {
+      const e = {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        properties: error.properties,
+      };
+      console.error("Eroare la doc.render():", JSON.stringify(e, null, 2));
+      throw error;
+    }
+
     const buffer = doc.getZip().generate({ type: "nodebuffer" });
 
     const docxPath = `output/${numeSafe}_${prenumeSafe}.docx`;
@@ -64,6 +79,9 @@ app.post("/genereaza-pdf", async (req, res) => {
       });
     });
     fs.writeFileSync(pdfPath, pdfBuf);
+
+    // DEBUG: verifică parola Gmail
+    console.log("GMAIL_APP_PASSWORD este definit?", !!process.env.GMAIL_APP_PASSWORD);
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -83,7 +101,7 @@ app.post("/genereaza-pdf", async (req, res) => {
 
     res.send({ success: true, message: "Document trimis pe email cu succes!" });
   } catch (err) {
-    console.error(err);
+    console.error("Eroare generală:", err); // DEBUG principal
     res.status(500).send("Eroare la generarea documentului");
   }
 });
