@@ -42,10 +42,10 @@ const numeSafe = normalize(nume);
 const docxPath = `output/${numeSafe}_${prenumeSafe}.docx`;
 const pdfPath = `output/${numeSafe}_${prenumeSafe}.pdf`;
 
-    fs.writeFileSync(docxPath, buf);
+fs.writeFileSync(docxPath, buf);
 
-    const pdfPath = `output/${nume}_${prenume}.pdf`;
-    const pdfBuf = await new Promise((resolve, reject) => {
+const pdfBuf = await new Promise((resolve, reject) => {
+
       libre.convert(buf, ".pdf", undefined, (err, done) => {
         if (err) reject(err);
         else resolve(done);
