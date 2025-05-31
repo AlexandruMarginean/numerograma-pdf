@@ -11,6 +11,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+if (!process.env.CLOUDCONVERT_API_KEY || !process.env.GMAIL_APP_PASSWORD) {
+  console.error("❌ Lipsesc variabile de mediu. Verifică .env!");
+  process.exit(1);
+}
+
 const cloudConvert = new CloudConvert(process.env.CLOUDCONVERT_API_KEY);
 
 const normalize = (str) =>
@@ -19,6 +24,7 @@ const normalize = (str) =>
 app.post("/genereaza-pdf", async (req, res) => {
   try {
     const { prenume, nume, email } = req.body;
+    console.log("📥 Request primit pentru:", prenume, nume, email);
 
     const prenumeSafe = normalize(prenume);
     const numeSafe = normalize(nume);
@@ -27,9 +33,16 @@ app.post("/genereaza-pdf", async (req, res) => {
     const outputFolder = path.join("output");
     const outputPath = path.join(outputFolder, `${numeSafe}_${prenumeSafe}.pdf`);
 
+    if (!fs.existsSync(inputPath)) {
+      console.error("❌ Fișierul .docx nu există:", inputPath);
+      return res.status(500).send("Fișierul .docx nu a fost găsit.");
+    }
+
     if (!fs.existsSync(outputFolder)) {
       fs.mkdirSync(outputFolder, { recursive: true });
     }
+
+    console.log("🚀 Pornesc conversia cu CloudConvert...");
 
     const job = await cloudConvert.jobs.create({
       tasks: {
@@ -57,9 +70,13 @@ app.post("/genereaza-pdf", async (req, res) => {
     const exportTask = completedJob.tasks.find((task) => task.operation === "export/url");
     const file = exportTask.result.files[0];
 
+    console.log("📎 Fișier PDF exportat:", file.url);
+
     const response = await fetch(file.url);
     const buffer = await response.arrayBuffer();
     fs.writeFileSync(outputPath, Buffer.from(buffer));
+
+    console.log("✉️ Trimit email la:", email);
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -82,9 +99,10 @@ app.post("/genereaza-pdf", async (req, res) => {
       ],
     });
 
+    console.log("✅ Email trimis cu succes!");
     res.send({ success: true, message: "PDF convertit și trimis cu succes!" });
   } catch (err) {
-    console.error("Eroare generală:", err);
+    console.error("❌ Eroare generală:", err);
     res.status(500).send("Eroare la generarea PDF-ului");
   }
 });
