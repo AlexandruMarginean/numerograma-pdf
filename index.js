@@ -8,7 +8,7 @@ import CloudConvert from "cloudconvert";
 import fetch from "node-fetch";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
-import { interpretariBarbat } from "./public/interpretariBarbat.js";
+
 
 const app = express();
 app.use(cors());
@@ -58,66 +58,69 @@ app.post("/genereaza-pdf", async (req, res) => {
       paragraphLoop: true,
       linebreaks: true,
     });
+const campuriNecesar = [
+  "numeKarmaPersonala", "textKarmaSociala", "vectorRational",
+  "vectorRelational", "vectorInstinctual", "coleric", "sangvinic", "flegmatic", "melancolic",
+  "masculine", "feminine", "manifestareInterioara", "manifestareExterioara",
+  "structuraPsihica", "structuraEmotionala", "informatii", "mobilizare",
+  "rationament", "scop", "spiritualitate", "responsabilitate", "iq"
+];
+
+const lipsuri = campuriNecesar.filter(c => !(c in interpretariBarbat));
+if (lipsuri.length > 0) {
+  console.warn("⚠️ Lipsesc câmpuri în interpretariBarbat:", lipsuri);
+}
 
     doc.setData({
   numeComplet: `${prenume} ${nume}`,
   dataNasterii: dataNasterii,
-  vibratieInterioara: vibratieInterioara,
-  textVibratieInterioara: interpretariBarbat.vibratieInterioara?.[vibratieInterioara] || "-",
+  vibratieInterioara,
+  textVibratieInterioara: req.body.textVibratieInterioara || "-",
   nrKarmaPersonala: karmaPersonala,
-  textKarmaPersonala: interpretariBarbat.karmaPersonala?.[karmaPersonala] || "-",
-  textKarmaSociala: interpretariBarbat.karmaSociala || "-",
-  numeKarmaPersonala: interpretariBarbat.numeKarmaPersonala || "-",
-  vibratieExterioara: vibratieExterioara,
-  textVibratieExterioara: interpretariBarbat.vibratieExterioara?.[vibratieExterioara] || "-",
-  numeEgregor: interpretariBarbat.numeEgregor || "-",
-  textEgregor: interpretariBarbat.egregor?.[egregor] || "-",
+  textKarmaPersonala: req.body.textKarmaPersonala || "-",
+  vibratieExterioara,
+  textVibratieExterioara: req.body.textVibratieExterioara || "-",
+  numeEgregor: req.body.numeEgregor || "-",
+  textEgregor: req.body.textEgregor || "-",
   nrKarmaNeam: karmaNeam,
-  textKarmaNeam: interpretariBarbat.karmaNeam?.[karmaNeam] || "-",
-  textSolutieKarmaNeam: interpretariBarbat.karmaNeamSolutie?.[karmaNeam] || "-",
-  varstaCurenta: varstaCurenta,
+  textKarmaNeam: req.body.textKarmaNeam || "-",
+  textSolutieKarmaNeam: req.body.textSolutieKarmaNeam || "-",
+  varstaCurenta,
   destin: cifraDestin,
-  textDestin: interpretariBarbat.destin?.[cifraDestin] || "-",
-  caleaDestinului: caleaDestinului,
-  textCaleaDestinului: interpretariBarbat.caleaDestinului?.[caleaDestinului] || "-",
-  cifraGlobala: cifraGlobala,
-  textCifraGlobala: interpretariBarbat.global?.[cifraGlobala] || "-",
-  manifestareInterioara: interpretariBarbat.manifestareInterioara || "-",
-  manifestareExterioara: interpretariBarbat.manifestareExterioara || "-",
-  textDistributieMasculin: interpretariBarbat.masculine || "-",
-  textDistributieFeminina: interpretariBarbat.feminine || "-",
-  textColeric: interpretariBarbat.coleric || "-",
-  textSangvinic: interpretariBarbat.sangvinic || "-",
-  textFlegmatic: interpretariBarbat.flegmatic || "-",
-  textMelancolic: interpretariBarbat.melancolic || "-",
-  textVectorRational: interpretariBarbat.vectorRational || "-",
-  textVectorRelational: interpretariBarbat.vectorRelational || "-",
-  textVectorInstinctual: interpretariBarbat.vectorInstinctual || "-",
-  ciclu9Ani: ciclu9Ani,
-  textCiclu9Ani: interpretariBarbat.ciclu9?.[ciclu9Ani] || "-",
-  anPersonal: anPersonal,
-  textAnPersonal: interpretariBarbat.anPersonal?.[anPersonal] || "-",
+  textDestin: req.body.textDestin || "-",
+  caleaDestinului,
+  textCaleaDestinului: req.body.textCaleaDestinului || "-",
+  cifraGlobala,
+  textCifraGlobala: req.body.textCifraGlobala || "-",
+  manifestareInterioara: req.body.manifestareInterioara || "-",
+  manifestareExterioara: req.body.manifestareExterioara || "-",
+  textDistributieMasculin: req.body.textDistributieMasculin || "-",
+  textDistributieFeminina: req.body.textDistributieFeminina || "-",
+  textColeric: req.body.textColeric || "-",
+  textSangvinic: req.body.textSangvinic || "-",
+  textFlegmatic: req.body.textFlegmatic || "-",
+  textMelancolic: req.body.textMelancolic || "-",
+  textVectorRational: req.body.textVectorRational || "-",
+  textVectorRelational: req.body.textVectorRelational || "-",
+  textVectorInstinctual: req.body.textVectorInstinctual || "-",
+  ciclu9Ani,
+  textCiclu9Ani: req.body.textCiclu9Ani || "-",
+  anPersonal,
+  textAnPersonal: req.body.textAnPersonal || "-",
 
-  C1: c1,
-  C2: c2,
-  C3: c3,
-  C4: c4,
-  C5: c5,
-  C6: c6,
-  C7: c7,
-  C8: c8,
-  C9: c9,
+  C1: c1, C2: c2, C3: c3, C4: c4, C5: c5, C6: c6, C7: c7, C8: c8, C9: c9,
 
-  textStructuraPsihica: interpretariBarbat.structuraPsihica || "-",
-  textStructuraEmotionala: interpretariBarbat.structuraEmotionala || "-",
-  textInformatii: interpretariBarbat.informatii || "-",
-  textMobilizare: interpretariBarbat.mobilizare || "-",
-  textRationament: interpretariBarbat.rationament || "-",
-  textScop: interpretariBarbat.scop || "-",
-  textSpiritualitate: interpretariBarbat.spiritualitate || "-",
-  textResponsabilitate: interpretariBarbat.responsabilitate || "-",
-  textIQ: interpretariBarbat.iq || "-"
+  textStructuraPsihica: req.body.textStructuraPsihica || "-",
+  textStructuraEmotionala: req.body.textStructuraEmotionala || "-",
+  textInformatii: req.body.textInformatii || "-",
+  textMobilizare: req.body.textMobilizare || "-",
+  textRationament: req.body.textRationament || "-",
+  textScop: req.body.textScop || "-",
+  textSpiritualitate: req.body.textSpiritualitate || "-",
+  textResponsabilitate: req.body.textResponsabilitate || "-",
+  textIQ: req.body.textIQ || "-"
 });
+
 
 
     try {
