@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import libre from "libreoffice-convert";
 import "dotenv/config";
 import express from "express";
@@ -11,6 +12,22 @@ import fetch from "node-fetch";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 
+=======
+import 'dotenv/config';
+import express from 'express';
+import nodemailer from 'nodemailer';
+import cors from 'cors';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import PizZip from 'pizzip';
+import Docxtemplater from 'docxtemplater';
+import libre from 'libreoffice-convert';
+import { promisify } from 'util';
+
+const convert = promisify(libre.convert);
+>>>>>>> 69cbfda (Dockerfile finalizat cu libreoffice-core)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -18,10 +35,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ✅ Verificare doar pentru email
 if (!process.env.GMAIL_APP_PASSWORD) {
-  console.error("❌ Lipsesc variabile de mediu. Verifică .env!");
-  process.exit(1);
+  console.error("❌ Lipsesc variabilele de email. Verifică .env!");
 }
+
 
 const normalize = (str) =>
   str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9_-]/g, "");
@@ -117,6 +135,7 @@ app.post("/genereaza-pdf", async (req, res) => {
 
     fs.writeFileSync(tempDocxPath, doc.getZip().generate({ type: "nodebuffer" }));
 
+<<<<<<< HEAD
     console.log("🚀 Pornesc conversia locală cu libreoffice-convert...");
 
     const docxBuf = fs.readFileSync(tempDocxPath);
@@ -129,7 +148,20 @@ app.post("/genereaza-pdf", async (req, res) => {
 
     fs.writeFileSync(outputPath, pdfBuf);
     console.log("✅ PDF generat local cu succes:", outputPath);
+=======
+    // ✅ Conversie PDF locală cu LibreOffice
+    try {
+      const docxBuf = fs.readFileSync(tempDocxPath);
+      const pdfBuf = await convert(docxBuf, '.pdf', undefined);
+      fs.writeFileSync(outputPath, pdfBuf);
+      console.log("✅ Conversie PDF cu LibreOffice finalizată");
+    } catch (err) {
+      console.error("❌ Eroare la conversia PDF:", err);
+      return res.status(500).send("Eroare la conversia fișierului PDF.");
+    }
+>>>>>>> 69cbfda (Dockerfile finalizat cu libreoffice-core)
 
+    // ✅ Trimitere pe email
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
