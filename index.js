@@ -1,3 +1,4 @@
+import libre from "libreoffice-convert";
 import "dotenv/config";
 import express from "express";
 import nodemailer from "nodemailer";
@@ -6,12 +7,11 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import CloudConvert from "cloudconvert";
 import fetch from "node-fetch";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
+import CloudConvert from "cloudconvert";
 
-// === Setare __dirname pentru ES Modules ===
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -19,7 +19,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// === Verificare variabile de mediu ===
 if (!process.env.CLOUDCONVERT_API_KEY || !process.env.GMAIL_APP_PASSWORD) {
   console.error("❌ Lipsesc variabile de mediu. Verifică .env!");
   process.exit(1);
@@ -43,7 +42,6 @@ app.post("/genereaza-pdf", async (req, res) => {
     const prenumeSafe = normalize(prenume);
     const numeSafe = normalize(nume);
 
-    // === Setare căi pentru fișiere ===
     const inputPath = path.join(__dirname, "templates", "Structura_Numerograma.docx");
     const outputFolder = path.join(__dirname, "output");
     const tempDocxPath = path.join(outputFolder, `${numeSafe}_${prenumeSafe}_completat.docx`);
@@ -58,13 +56,9 @@ app.post("/genereaza-pdf", async (req, res) => {
       fs.mkdirSync(outputFolder, { recursive: true });
     }
 
-    // === Generare DOCX ===
     const content = fs.readFileSync(inputPath, "binary");
     const zip = new PizZip(content);
-    const doc = new Docxtemplater(zip, {
-      paragraphLoop: true,
-      linebreaks: true,
-    });
+    const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
 
     doc.setData({
       numeComplet: `${prenume} ${nume}`,
