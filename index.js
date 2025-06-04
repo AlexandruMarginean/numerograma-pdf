@@ -37,7 +37,7 @@ app.post("/genereaza-pdf", async (req, res) => {
     const prenumeSafe = normalize(prenume);
     const numeSafe = normalize(nume);
 
-    const inputPath = path.join("templates", "Structura Numerograma editabila.docx");
+    const inputPath = path.join("templates", "Structura_Numerograma.docx");
     const outputFolder = path.join("output");
     const tempDocxPath = path.join(outputFolder, `${numeSafe}_${prenumeSafe}_completat.docx`);
     const outputPath = path.join(outputFolder, `${numeSafe}_${prenumeSafe}.pdf`);
