@@ -4,16 +4,22 @@ import nodemailer from "nodemailer";
 import cors from "cors";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 import CloudConvert from "cloudconvert";
 import fetch from "node-fetch";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 
+// === Setare __dirname pentru ES Modules ===
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+// === Verificare variabile de mediu ===
 if (!process.env.CLOUDCONVERT_API_KEY || !process.env.GMAIL_APP_PASSWORD) {
   console.error("❌ Lipsesc variabile de mediu. Verifică .env!");
   process.exit(1);
@@ -37,16 +43,9 @@ app.post("/genereaza-pdf", async (req, res) => {
     const prenumeSafe = normalize(prenume);
     const numeSafe = normalize(nume);
 
-    import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const inputPath = path.join(__dirname, "templates", "Structura_Numerograma.docx");
-
-    const outputFolder = path.join("output");
+    // === Setare căi pentru fișiere ===
+    const inputPath = path.join(__dirname, "templates", "Structura_Numerograma.docx");
+    const outputFolder = path.join(__dirname, "output");
     const tempDocxPath = path.join(outputFolder, `${numeSafe}_${prenumeSafe}_completat.docx`);
     const outputPath = path.join(outputFolder, `${numeSafe}_${prenumeSafe}.pdf`);
 
@@ -59,77 +58,61 @@ const inputPath = path.join(__dirname, "templates", "Structura_Numerograma.docx"
       fs.mkdirSync(outputFolder, { recursive: true });
     }
 
-    // Completează DOCX
+    // === Generare DOCX ===
     const content = fs.readFileSync(inputPath, "binary");
     const zip = new PizZip(content);
     const doc = new Docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
     });
-const campuriNecesar = [
-  "numeKarmaPersonala", "textKarmaSociala", "vectorRational",
-  "vectorRelational", "vectorInstinctual", "coleric", "sangvinic", "flegmatic", "melancolic",
-  "masculine", "feminine", "manifestareInterioara", "manifestareExterioara",
-  "structuraPsihica", "structuraEmotionala", "informatii", "mobilizare",
-  "rationament", "scop", "spiritualitate", "responsabilitate", "iq"
-];
-
-const lipsuri = campuriNecesar.filter(c => !(c in interpretariBarbat));
-if (lipsuri.length > 0) {
-  console.warn("⚠️ Lipsesc câmpuri în interpretariBarbat:", lipsuri);
-}
 
     doc.setData({
-  numeComplet: `${prenume} ${nume}`,
-  dataNasterii: dataNasterii,
-  vibratieInterioara,
-  textVibratieInterioara: req.body.textVibratieInterioara || "-",
-  nrKarmaPersonala: karmaPersonala,
-  textKarmaPersonala: req.body.textKarmaPersonala || "-",
-  vibratieExterioara,
-  textVibratieExterioara: req.body.textVibratieExterioara || "-",
-  numeEgregor: req.body.numeEgregor || "-",
-  textEgregor: req.body.textEgregor || "-",
-  nrKarmaNeam: karmaNeam,
-  textKarmaNeam: req.body.textKarmaNeam || "-",
-  textSolutieKarmaNeam: req.body.textSolutieKarmaNeam || "-",
-  varstaCurenta,
-  destin: cifraDestin,
-  textDestin: req.body.textDestin || "-",
-  caleaDestinului,
-  textCaleaDestinului: req.body.textCaleaDestinului || "-",
-  cifraGlobala,
-  textCifraGlobala: req.body.textCifraGlobala || "-",
-  manifestareInterioara: req.body.manifestareInterioara || "-",
-  manifestareExterioara: req.body.manifestareExterioara || "-",
-  textDistributieMasculin: req.body.textDistributieMasculin || "-",
-  textDistributieFeminina: req.body.textDistributieFeminina || "-",
-  textColeric: req.body.textColeric || "-",
-  textSangvinic: req.body.textSangvinic || "-",
-  textFlegmatic: req.body.textFlegmatic || "-",
-  textMelancolic: req.body.textMelancolic || "-",
-  textVectorRational: req.body.textVectorRational || "-",
-  textVectorRelational: req.body.textVectorRelational || "-",
-  textVectorInstinctual: req.body.textVectorInstinctual || "-",
-  ciclu9Ani,
-  textCiclu9Ani: req.body.textCiclu9Ani || "-",
-  anPersonal,
-  textAnPersonal: req.body.textAnPersonal || "-",
-
-  C1: c1, C2: c2, C3: c3, C4: c4, C5: c5, C6: c6, C7: c7, C8: c8, C9: c9,
-
-  textStructuraPsihica: req.body.textStructuraPsihica || "-",
-  textStructuraEmotionala: req.body.textStructuraEmotionala || "-",
-  textInformatii: req.body.textInformatii || "-",
-  textMobilizare: req.body.textMobilizare || "-",
-  textRationament: req.body.textRationament || "-",
-  textScop: req.body.textScop || "-",
-  textSpiritualitate: req.body.textSpiritualitate || "-",
-  textResponsabilitate: req.body.textResponsabilitate || "-",
-  textIQ: req.body.textIQ || "-"
-});
-
-
+      numeComplet: `${prenume} ${nume}`,
+      dataNasterii,
+      vibratieInterioara,
+      textVibratieInterioara: req.body.textVibratieInterioara || "-",
+      nrKarmaPersonala: karmaPersonala,
+      textKarmaPersonala: req.body.textKarmaPersonala || "-",
+      vibratieExterioara,
+      textVibratieExterioara: req.body.textVibratieExterioara || "-",
+      numeEgregor: req.body.numeEgregor || "-",
+      textEgregor: req.body.textEgregor || "-",
+      nrKarmaNeam: karmaNeam,
+      textKarmaNeam: req.body.textKarmaNeam || "-",
+      textSolutieKarmaNeam: req.body.textSolutieKarmaNeam || "-",
+      varstaCurenta,
+      destin: cifraDestin,
+      textDestin: req.body.textDestin || "-",
+      caleaDestinului,
+      textCaleaDestinului: req.body.textCaleaDestinului || "-",
+      cifraGlobala,
+      textCifraGlobala: req.body.textCifraGlobala || "-",
+      manifestareInterioara: req.body.manifestareInterioara || "-",
+      manifestareExterioara: req.body.manifestareExterioara || "-",
+      textDistributieMasculin: req.body.textDistributieMasculin || "-",
+      textDistributieFeminina: req.body.textDistributieFeminina || "-",
+      textColeric: req.body.textColeric || "-",
+      textSangvinic: req.body.textSangvinic || "-",
+      textFlegmatic: req.body.textFlegmatic || "-",
+      textMelancolic: req.body.textMelancolic || "-",
+      textVectorRational: req.body.textVectorRational || "-",
+      textVectorRelational: req.body.textVectorRelational || "-",
+      textVectorInstinctual: req.body.textVectorInstinctual || "-",
+      ciclu9Ani,
+      textCiclu9Ani: req.body.textCiclu9Ani || "-",
+      anPersonal,
+      textAnPersonal: req.body.textAnPersonal || "-",
+      C1: c1, C2: c2, C3: c3, C4: c4, C5: c5, C6: c6, C7: c7, C8: c8, C9: c9,
+      textStructuraPsihica: req.body.textStructuraPsihica || "-",
+      textStructuraEmotionala: req.body.textStructuraEmotionala || "-",
+      textInformatii: req.body.textInformatii || "-",
+      textMobilizare: req.body.textMobilizare || "-",
+      textRationament: req.body.textRationament || "-",
+      textScop: req.body.textScop || "-",
+      textSpiritualitate: req.body.textSpiritualitate || "-",
+      textResponsabilitate: req.body.textResponsabilitate || "-",
+      textIQ: req.body.textIQ || "-"
+    });
 
     try {
       doc.render();
