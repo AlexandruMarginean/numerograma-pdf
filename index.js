@@ -10,7 +10,6 @@ import { dirname } from "path";
 import fetch from "node-fetch";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
-import CloudConvert from "cloudconvert";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,12 +18,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-if (!process.env.CLOUDCONVERT_API_KEY || !process.env.GMAIL_APP_PASSWORD) {
+if (!process.env.GMAIL_APP_PASSWORD) {
   console.error("❌ Lipsesc variabile de mediu. Verifică .env!");
   process.exit(1);
 }
-
-const cloudConvert = new CloudConvert(process.env.CLOUDCONVERT_API_KEY);
 
 const normalize = (str) =>
   str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9_-]/g, "");
@@ -58,7 +55,10 @@ app.post("/genereaza-pdf", async (req, res) => {
 
     const content = fs.readFileSync(inputPath, "binary");
     const zip = new PizZip(content);
-    const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+    const doc = new Docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+    });
 
     doc.setData({
       numeComplet: `${prenume} ${nume}`,
@@ -117,34 +117,18 @@ app.post("/genereaza-pdf", async (req, res) => {
 
     fs.writeFileSync(tempDocxPath, doc.getZip().generate({ type: "nodebuffer" }));
 
-    console.log("🚀 Pornesc conversia cu CloudConvert...");
+    console.log("🚀 Pornesc conversia locală cu libreoffice-convert...");
 
-    const job = await cloudConvert.jobs.create({
-      tasks: {
-        upload: { operation: "import/upload" },
-        convert: {
-          operation: "convert",
-          input: "upload",
-          input_format: "docx",
-          output_format: "pdf"
-        },
-        export: { operation: "export/url", input: "convert" },
-      },
+    const docxBuf = fs.readFileSync(tempDocxPath);
+    const pdfBuf = await new Promise((resolve, reject) => {
+      libre.convert(docxBuf, ".pdf", undefined, (err, done) => {
+        if (err) reject(err);
+        else resolve(done);
+      });
     });
 
-    const uploadTask = job.tasks.find((task) => task.name === "upload");
-    const inputFile = fs.createReadStream(tempDocxPath);
-    await cloudConvert.tasks.upload(uploadTask, inputFile);
-
-    const completedJob = await cloudConvert.jobs.wait(job.id);
-    const exportTask = completedJob.tasks.find((task) => task.operation === "export/url");
-    const file = exportTask.result.files[0];
-
-    console.log("📎 Fișier PDF exportat:", file.url);
-
-    const response = await fetch(file.url);
-    const buffer = await response.arrayBuffer();
-    fs.writeFileSync(outputPath, Buffer.from(buffer));
+    fs.writeFileSync(outputPath, pdfBuf);
+    console.log("✅ PDF generat local cu succes:", outputPath);
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
