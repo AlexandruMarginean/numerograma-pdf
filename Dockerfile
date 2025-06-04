@@ -18,4 +18,5 @@ COPY . .
 RUN npm install
 
 # Pornire aplicație
-CMD ["npm", "start"]
+CMD ["node", "index.js"]
+
