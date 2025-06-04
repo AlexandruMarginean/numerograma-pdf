@@ -1,18 +1,3 @@
-<<<<<<< HEAD
-import libre from "libreoffice-convert";
-import "dotenv/config";
-import express from "express";
-import nodemailer from "nodemailer";
-import cors from "cors";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-import fetch from "node-fetch";
-import PizZip from "pizzip";
-import Docxtemplater from "docxtemplater";
-
-=======
 import 'dotenv/config';
 import express from 'express';
 import nodemailer from 'nodemailer';
@@ -21,13 +6,14 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import fetch from 'node-fetch';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import libre from 'libreoffice-convert';
 import { promisify } from 'util';
 
 const convert = promisify(libre.convert);
->>>>>>> 69cbfda (Dockerfile finalizat cu libreoffice-core)
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -135,31 +121,17 @@ app.post("/genereaza-pdf", async (req, res) => {
 
     fs.writeFileSync(tempDocxPath, doc.getZip().generate({ type: "nodebuffer" }));
 
-<<<<<<< HEAD
-    console.log("🚀 Pornesc conversia locală cu libreoffice-convert...");
+// ✅ Conversie PDF locală cu LibreOffice
+try {
+  const docxBuf = fs.readFileSync(tempDocxPath);
+  const pdfBuf = await convert(docxBuf, '.pdf', undefined);
+  fs.writeFileSync(outputPath, pdfBuf);
+  console.log("✅ Conversie PDF cu LibreOffice finalizată");
+} catch (err) {
+  console.error("❌ Eroare la conversia PDF:", err);
+  return res.status(500).send("Eroare la conversia fișierului PDF.");
+}
 
-    const docxBuf = fs.readFileSync(tempDocxPath);
-    const pdfBuf = await new Promise((resolve, reject) => {
-      libre.convert(docxBuf, ".pdf", undefined, (err, done) => {
-        if (err) reject(err);
-        else resolve(done);
-      });
-    });
-
-    fs.writeFileSync(outputPath, pdfBuf);
-    console.log("✅ PDF generat local cu succes:", outputPath);
-=======
-    // ✅ Conversie PDF locală cu LibreOffice
-    try {
-      const docxBuf = fs.readFileSync(tempDocxPath);
-      const pdfBuf = await convert(docxBuf, '.pdf', undefined);
-      fs.writeFileSync(outputPath, pdfBuf);
-      console.log("✅ Conversie PDF cu LibreOffice finalizată");
-    } catch (err) {
-      console.error("❌ Eroare la conversia PDF:", err);
-      return res.status(500).send("Eroare la conversia fișierului PDF.");
-    }
->>>>>>> 69cbfda (Dockerfile finalizat cu libreoffice-core)
 
     // ✅ Trimitere pe email
     const transporter = nodemailer.createTransport({
