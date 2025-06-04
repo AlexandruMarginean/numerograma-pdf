@@ -1,24 +1,19 @@
-# Imagine oficială Node.js cu LibreOffice instalat
-FROM node:18-slim
+FROM node:20-slim
 
-# Instalăm LibreOffice + fonturi utile pentru PDF
-RUN apt-get update && apt-get install -y \
-  libreoffice \
-  fonts-dejavu \
-  fonts-liberation \
-  ttf-mscorefonts-installer \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+# Instalăm LibreOffice
+RUN apt-get update && apt-get install -y libreoffice --no-install-recommends && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Setăm directorul de lucru
 WORKDIR /app
 
-# Copiem fișierele proiectului
+# Copiem fișierele în container
 COPY . .
 
-# Instalăm pachetele
+# Instalăm dependențele
 RUN npm install
 
-# Pornim serverul
-CMD ["npm", "start"]
+# Expunem portul aplicației
+EXPOSE 8080
 
+# Comanda care pornește serverul
+CMD ["node", "index.js"]
