@@ -33,12 +33,14 @@ const normalize = (str) =>
 app.post("/genereaza-pdf", async (req, res) => {
   try {
     const {
-      prenume, nume, email, dataNasterii, cifraDestin,
-      c1, c2, c3, c4, c5, c6, c7, c8, c9,
-      varstaCurenta, vibratieInterioara, vibratieExterioara,
-      anPersonal, caleaDestinului, ciclu9Ani, cifraGlobala,
-      karmaNeam, karmaPersonala, egregor
-    } = req.body;
+  prenume, nume, email, dataNasterii, cifraDestin,
+  c1, c2, c3, c4, c5, c6, c7, c8, c9,
+  varstaCurenta, vibratieInterioara, vibratieExterioara,
+  anPersonal, caleaDestinului, ciclu9Ani, cifraGlobala,
+  karmaNeam, karmaPersonala, egregor,
+  gen // ⬅️ aici e cheia!
+} = req.body;
+
 
     const prenumeSafe = normalize(prenume);
     const numeSafe = normalize(nume);
