@@ -25,7 +25,7 @@ if (!process.env.GMAIL_APP_PASSWORD) {
 }
 
 const normalize = (str) =>
-  str.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9_-]/g, "");
+  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9_-]/g, "");
 
 app.post("/pregateste-livrare", async (req, res) => {
   try {
@@ -89,7 +89,7 @@ app.post("/pregateste-livrare", async (req, res) => {
       numeEgregor: numeEgregor || "-",
       textEgregor: textEgregor || "-",
       nrKarmaNeam: karmaNeam,
-      textKarmaNeam: textKarmaNeam || "-",
+      textKarmaNeam: req.body.textKarmaNeam || "-",
       textSolutieKarmaNeam: textSolutieKarmaNeam || "-",
       varstaCurenta,
       destin: cifraDestin,
