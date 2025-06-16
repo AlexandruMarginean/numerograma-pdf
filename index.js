@@ -13,7 +13,6 @@ import libre from 'libreoffice-convert';
 import { promisify } from 'util';
 
 const convert = promisify(libre.convert);
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -21,37 +20,32 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Verificare doar pentru email
 if (!process.env.GMAIL_APP_PASSWORD) {
   console.error("❌ Lipsesc variabilele de email. Verifică .env!");
 }
 
-
 const normalize = (str) =>
-  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9_-]/g, "");
+  str.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9_-]/g, "");
 
-app.post("/genereaza-pdf", async (req, res) => {
+app.post("/pregateste-livrare", async (req, res) => {
   try {
     const {
-  prenume, nume, email, dataNasterii, cifraDestin,
-  c1, c2, c3, c4, c5, c6, c7, c8, c9,
-  varstaCurenta, vibratieInterioara, vibratieExterioara,
-  anPersonal, caleaDestinului, ciclu9Ani, cifraGlobala,
-  karmaNeam, karmaPersonala, egregor,
-  gen // ⬅️ aici e cheia!
-} = req.body;
-
+      prenume, nume, email, dataNasterii, cifraDestin,
+      c1, c2, c3, c4, c5, c6, c7, c8, c9,
+      varstaCurenta, vibratieInterioara, vibratieExterioara,
+      anPersonal, caleaDestinului, ciclu9Ani, cifraGlobala,
+      karmaNeam, karmaPersonala, egregor, gen,
+      paymentId, produs, trimiteFactura
+    } = req.body;
 
     const prenumeSafe = normalize(prenume);
     const numeSafe = normalize(nume);
 
-    // Alege fișierul .docx în funcție de gen
-const templateFileName = gen === "femeie"
-  ? "Structura_Numerograma_FEMEIE.docx"
-  : "Structura_Numerograma.docx";
+    const templateFileName = gen === "femeie"
+      ? "Structura_Numerograma_FEMEIE.docx"
+      : "Structura_Numerograma.docx";
 
-const inputPath = path.join(__dirname, "templates", templateFileName);
-
+    const inputPath = path.join(__dirname, "templates", templateFileName);
     const outputFolder = path.join(__dirname, "output");
     const tempDocxPath = path.join(outputFolder, `${numeSafe}_${prenumeSafe}_completat.docx`);
     const outputPath = path.join(outputFolder, `${numeSafe}_${prenumeSafe}.pdf`);
@@ -129,19 +123,16 @@ const inputPath = path.join(__dirname, "templates", templateFileName);
 
     fs.writeFileSync(tempDocxPath, doc.getZip().generate({ type: "nodebuffer" }));
 
-// ✅ Conversie PDF locală cu LibreOffice
-try {
-  const docxBuf = fs.readFileSync(tempDocxPath);
-  const pdfBuf = await convert(docxBuf, '.pdf', undefined);
-  fs.writeFileSync(outputPath, pdfBuf);
-  console.log("✅ Conversie PDF cu LibreOffice finalizată");
-} catch (err) {
-  console.error("❌ Eroare la conversia PDF:", err);
-  return res.status(500).send("Eroare la conversia fișierului PDF.");
-}
+    try {
+      const docxBuf = fs.readFileSync(tempDocxPath);
+      const pdfBuf = await convert(docxBuf, '.pdf', undefined);
+      fs.writeFileSync(outputPath, pdfBuf);
+      console.log("✅ Conversie PDF cu LibreOffice finalizată");
+    } catch (err) {
+      console.error("❌ Eroare la conversia PDF:", err);
+      return res.status(500).send("Eroare la conversia fișierului PDF.");
+    }
 
-
-    // ✅ Trimitere pe email
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
