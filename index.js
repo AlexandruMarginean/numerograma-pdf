@@ -78,57 +78,56 @@ app.post("/pregateste-livrare", async (req, res) => {
     });
 
     doc.setData({
-  numeComplet: `${prenume} ${nume}`,
-  dataNasterii: new Date(dataNasterii).toLocaleDateString("ro-RO", {
-    day: "numeric",
-    month: "numeric",
-    year: "numeric"
-  }),
-  vibratieInterioara,
-  textVibratieInterioara: textVibratieInterioara || "-",
-  nrKarmaPersonala: karmaPersonala,
-  textKarmaPersonala: textKarmaPersonala || "-",
-  vibratieExterioara,
-  textVibratieExterioara: textVibratieExterioara || "-",
-  numeEgregor: numeEgregor || "-",
-  textEgregor: textEgregor || "-",
-  nrKarmaNeam: karmaNeam,
-  textKarmaNeam: req.body.textKarmaNeam || "-",
-  textSolutieKarmaNeam: textSolutieKarmaNeam || "-",
-  varstaCurenta,
-  destin: cifraDestin,
-  textDestin: textDestin || "-",
-  caleaDestinului,
-  textCaleaDestinului: textCaleaDestinului || "-",
-  cifraGlobala,
-  textCifraGlobala: textCifraGlobala || "-",
-  manifestareInterioara: manifestareInterioara || "-",
-  manifestareExterioara: manifestareExterioara || "-",
-  textDistributieMasculin: textDistributieMasculin || "-",
-  textDistributieFeminina: textDistributieFeminina || "-",
-  textColeric: textColeric || "-",
-  textSangvinic: textSangvinic || "-",
-  textFlegmatic: textFlegmatic || "-",
-  textMelancolic: textMelancolic || "-",
-  textVectorRational: textVectorRational || "-",
-  textVectorRelational: textVectorRelational || "-",
-  textVectorInstinctual: textVectorInstinctual || "-",
-  ciclu9Ani,
-  textCiclu9Ani: textCiclu9Ani || "-",
-  anPersonal,
-  textAnPersonal: textAnPersonal || "-",
-  C1: c1, C2: c2, C3: c3, C4: c4, C5: c5, C6: c6, C7: c7, C8: c8, C9: c9,
-  textStructuraPsihica: textStructuraPsihica || "-",
-  textStructuraEmotionala: textStructuraEmotionala || "-",
-  textInformatii: textInformatii || "-",
-  textMobilizare: textMobilizare || "-",
-  textRationament: textRationament || "-",
-  textScop: textScop || "-",
-  textSpiritualitate: textSpiritualitate || "-",
-  textResponsabilitate: textResponsabilitate || "-",
-  textIQ: textIQ || "-"
-});
-
+      numeComplet: `${prenume} ${nume}`,
+      dataNasterii: new Date(dataNasterii).toLocaleDateString("ro-RO", {
+        day: "numeric",
+        month: "numeric",
+        year: "numeric"
+      }),
+      vibratieInterioara,
+      textVibratieInterioara: textVibratieInterioara || "-",
+      nrKarmaPersonala: karmaPersonala,
+      textKarmaPersonala: textKarmaPersonala || "-",
+      vibratieExterioara,
+      textVibratieExterioara: textVibratieExterioara || "-",
+      numeEgregor: numeEgregor || "-",
+      textEgregor: textEgregor || "-",
+      nrKarmaNeam: karmaNeam,
+      textKarmaNeam: req.body.textKarmaNeam || "-",
+      textSolutieKarmaNeam: textSolutieKarmaNeam || "-",
+      varstaCurenta,
+      destin: cifraDestin,
+      textDestin: textDestin || "-",
+      caleaDestinului,
+      textCaleaDestinului: textCaleaDestinului || "-",
+      cifraGlobala,
+      textCifraGlobala: textCifraGlobala || "-",
+      manifestareInterioara: manifestareInterioara || "-",
+      manifestareExterioara: manifestareExterioara || "-",
+      textDistributieMasculin: textDistributieMasculin || "-",
+      textDistributieFeminina: textDistributieFeminina || "-",
+      textColeric: textColeric || "-",
+      textSangvinic: textSangvinic || "-",
+      textFlegmatic: textFlegmatic || "-",
+      textMelancolic: textMelancolic || "-",
+      textVectorRational: textVectorRational || "-",
+      textVectorRelational: textVectorRelational || "-",
+      textVectorInstinctual: textVectorInstinctual || "-",
+      ciclu9Ani,
+      textCiclu9Ani: textCiclu9Ani || "-",
+      anPersonal,
+      textAnPersonal: textAnPersonal || "-",
+      C1: c1, C2: c2, C3: c3, C4: c4, C5: c5, C6: c6, C7: c7, C8: c8, C9: c9,
+      textStructuraPsihica: textStructuraPsihica || "-",
+      textStructuraEmotionala: textStructuraEmotionala || "-",
+      textInformatii: textInformatii || "-",
+      textMobilizare: textMobilizare || "-",
+      textRationament: textRationament || "-",
+      textScop: textScop || "-",
+      textSpiritualitate: textSpiritualitate || "-",
+      textResponsabilitate: textResponsabilitate || "-",
+      textIQ: textIQ || "-"
+    });
 
     try {
       doc.render();
@@ -175,6 +174,56 @@ app.post("/pregateste-livrare", async (req, res) => {
   } catch (err) {
     console.error("❌ Eroare generală:", err);
     res.status(500).send("Eroare la generarea PDF-ului");
+  }
+});
+
+app.post("/pregateste-livrare-cu-paymentId", async (req, res) => {
+  try {
+    const { paymentId, gen } = req.body;
+
+    if (!paymentId || !gen) {
+      return res.status(400).json({ error: "Lipsesc paymentId sau gen" });
+    }
+
+    const wixFunctionUrl = "https://www.alexandrumagician.ro/_functions-dev/comenziNumerograme";
+
+    const comandaResp = await fetch(wixFunctionUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paymentId }),
+    });
+
+    if (!comandaResp.ok) {
+      const errText = await comandaResp.text();
+      console.error("❌ Eroare la fetch comanda:", errText);
+      return res.status(500).send("Nu pot obține comanda din Wix");
+    }
+
+    const comanda = await comandaResp.json();
+
+    const livrareResp = await fetch("https://numerograma-pdf-production.up.railway.app/pregateste-livrare", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...comanda,
+        gen,
+        trimiteFactura: comanda.trimiteFactura || comanda.email
+      }),
+    });
+
+    if (!livrareResp.ok) {
+      const errText = await livrareResp.text();
+      console.error("❌ Eroare la generarea PDF:", errText);
+      return res.status(500).send("Eroare la generarea PDF-ului");
+    }
+
+    const rezultat = await livrareResp.json();
+    console.log("✅ Livrare finalizată:", rezultat.message);
+    res.json(rezultat);
+
+  } catch (err) {
+    console.error("❌ Eroare generală la livrare:", err);
+    res.status(500).send("Eroare la livrarea numerogramei");
   }
 });
 
