@@ -1,12 +1,13 @@
 FROM node:18
 
-# Instalare LibreOffice (fără GUI), fonturi și curl
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    libreoffice-core libreoffice-writer libreoffice-calc \
-    fonts-dejavu curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Instalăm LibreOffice + fonturi utile pentru PDF (fără pachetul care nu există în bookworm)
+RUN apt-get update && apt-get install -y \
+  libreoffice \
+  fonts-dejavu \
+  fonts-liberation \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
 
 # Director de lucru
 WORKDIR /app
