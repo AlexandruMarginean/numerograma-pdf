@@ -49,8 +49,8 @@ app.post("/pregateste-livrare", async (req, res) => {
       textSpiritualitate, textResponsabilitate, textIQ
     } = req.body;
 
-    const prenumeSafe = normalize(prenume);
-    const numeSafe = normalize(nume);
+    const prenumeSafe = normalize(prenume || "Prenume");
+    const numeSafe = normalize(nume || "Nume");
 
     const templateFileName = gen === "femeie"
       ? "Structura_Numerograma_FEMEIE.docx"
@@ -224,6 +224,41 @@ app.post("/pregateste-livrare-cu-paymentId", async (req, res) => {
   } catch (err) {
     console.error("❌ Eroare generală la livrare:", err);
     res.status(500).send("Eroare la livrarea numerogramei");
+  }
+});
+
+/**
+ * 🔁 Alias pentru noul flow din Wix:
+ * /genereaza-pdf → folosește aceeași logică ca /pregateste-livrare
+ */
+app.post("/genereaza-pdf", async (req, res) => {
+  try {
+    console.log("📨 Payload primit în /genereaza-pdf (alias):", req.body);
+
+    const internalPort = process.env.PORT || 8080;
+
+    const response = await fetch(`http://127.0.0.1:${internalPort}/pregateste-livrare`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body),
+    });
+
+    const contentType = response.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
+      const data = await response.json();
+      return res.status(response.status).json(data);
+    } else {
+      const text = await response.text();
+      return res.status(response.status).send(text);
+    }
+  } catch (err) {
+    console.error("❌ Eroare în aliasul /genereaza-pdf:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Eroare internă la aliasul /genereaza-pdf",
+      details: err?.message || String(err),
+    });
   }
 });
 
