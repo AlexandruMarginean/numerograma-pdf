@@ -24,8 +24,13 @@ if (!process.env.GMAIL_APP_PASSWORD) {
   console.error("❌ Lipsesc variabilele de email. Verifică .env!");
 }
 
-const normalize = (str) =>
-  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9_-]/g, "");
+const normalize = (str = "") =>
+  str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9_-]/g, "");
+
+// ======================= /pregateste-livrare =======================
 
 app.post("/pregateste-livrare", async (req, res) => {
   try {
@@ -48,6 +53,14 @@ app.post("/pregateste-livrare", async (req, res) => {
       textMobilizare, textRationament, textScop,
       textSpiritualitate, textResponsabilitate, textIQ
     } = req.body;
+
+    console.log("📨 /pregateste-livrare: payload primit:", {
+      prenume,
+      nume,
+      email,
+      dataNasterii,
+      gen,
+    });
 
     const prenumeSafe = normalize(prenume || "Prenume");
     const numeSafe = normalize(nume || "Nume");
@@ -177,6 +190,8 @@ app.post("/pregateste-livrare", async (req, res) => {
   }
 });
 
+// ======================= /pregateste-livrare-cu-paymentId =======================
+
 app.post("/pregateste-livrare-cu-paymentId", async (req, res) => {
   try {
     const { paymentId, gen } = req.body;
@@ -224,41 +239,6 @@ app.post("/pregateste-livrare-cu-paymentId", async (req, res) => {
   } catch (err) {
     console.error("❌ Eroare generală la livrare:", err);
     res.status(500).send("Eroare la livrarea numerogramei");
-  }
-});
-
-/**
- * 🔁 Alias pentru noul flow din Wix:
- * /genereaza-pdf → folosește aceeași logică ca /pregateste-livrare
- */
-app.post("/genereaza-pdf", async (req, res) => {
-  try {
-    console.log("📨 Payload primit în /genereaza-pdf (alias):", req.body);
-
-    const internalPort = process.env.PORT || 8080;
-
-    const response = await fetch(`http://127.0.0.1:${internalPort}/pregateste-livrare`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(req.body),
-    });
-
-    const contentType = response.headers.get("content-type") || "";
-
-    if (contentType.includes("application/json")) {
-      const data = await response.json();
-      return res.status(response.status).json(data);
-    } else {
-      const text = await response.text();
-      return res.status(response.status).send(text);
-    }
-  } catch (err) {
-    console.error("❌ Eroare în aliasul /genereaza-pdf:", err);
-    return res.status(500).json({
-      status: "error",
-      message: "Eroare internă la aliasul /genereaza-pdf",
-      details: err?.message || String(err),
-    });
   }
 });
 
